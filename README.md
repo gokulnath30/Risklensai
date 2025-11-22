@@ -1,134 +1,79 @@
-# Risklensai
+# Risklens AI
 
-Small React + TypeScript UI for visualizing risk data and integrating with a Gemini service.
+A React + TypeScript application for visualizing district-level risk data through a multi-agent AI synthesis system.
 
-## Live demo
-- Public demo: https://risklens-3001.web.app/
-  - This is the hosted preview of the latest build. If changes are not visible, rebuild and redeploy.
+## 🚀 Live Demo
 
-## Demo screenshots
-- Home view  
-  ![Home](./img/hoem.png)
+**Public Demo:** https://risklens-3001.web.app/  
+*Hosted preview of the latest build. If changes aren't visible, rebuild and redeploy.*
 
-- Graph / dashboard  
-  ![Graph](./img/graph.2.png)
+## 📸 Demo Screenshots
 
-- Search results  
-  ![Search results](./img/searched_result1.png)
+| Home View | Graph Dashboard | Search Results |
+|-----------|-----------------|----------------|
+| ![Home](./img/hoem.png) | ![Graph](./img/graph.2.png) | ![Search Results](./img/searched_result1.png) |
 
-## Tech stack
-- React + TypeScript (.tsx components in /components)
-- Services: /services/geminiService.ts (calls to Gemini / LLM)
-- Build tools: standard npm scripts (project may use CRA, Vite, or similar)
+## 🛠 Tech Stack
 
-## Quick start (Windows)
-1. Install dependencies
-   - PowerShell / CMD:
-     npm install
+- **Frontend:** React + TypeScript
+- **AI Integration:** Google Gemini API
+- **Build Tools:** npm scripts (CRA/Vite-based)
+- **Deployment:** Firebase Hosting
 
-2. Set environment variables (example for Gemini API key)
-   - PowerShell (current session):
-     $env:REACT_APP_GEMINI_API_KEY = "your_api_key"
-   - Persist (PowerShell):
-     setx REACT_APP_GEMINI_API_KEY "your_api_key"
+## 🏗 Project Structure
 
-3. Run locally
-   - If the project uses Vite:
-     npm run dev
-   - If it uses Create React App:
-     npm start
-
-4. Build for production:
-   npm run build
-
-5. Deploy (example: Firebase Hosting)
-   - Install Firebase CLI (if using Firebase):
-     npm install -g firebase-tools
-   - Login and initialize (first time):
-     firebase login
-     firebase init hosting
-   - Deploy:
-     firebase deploy --only hosting
-   - After deploy, confirm the site at the demo URL above.
-
-6. Run tests:
-   npm test
-
-## Project structure
-- /components
-  - BlockHeatmap.tsx
-  - DimensionCard.tsx
-  - GeoMap.tsx
-  - MetricCard.tsx
-  - RiskBadge.tsx
-  - RiskRadarChart.tsx
-- /services
-  - geminiService.ts — wrapper for calling the Gemini/LLM API (configure via env var)
-- /img
-  - hoem.png
-  - graph.2.png
-  - searched_result1.png
-
-## Core idea — multi-agent risk synthesis
-
-We run a set of specialist LLM agents (financial, income stability, climate, socio-economic, infrastructure, shock history) in parallel to fetch and structure district-level signals. An aggregator agent then synthesizes those structured outputs into a single, actionable lending risk view (JSON-like) for a given district. This makes the system:
-
-- modular: add/remove specialist agents easily
-- auditable: each dimension produces a structured output
-- actionable: aggregator returns short lender-ready guidance and risk drivers
-
-Example Python (minimal) — run a Thanjavur assessment
-```python
-# Minimal example: create specialists, run in parallel, synthesize
-# This is a concise snippet — adapt retry/keys as needed.
-
-from google.adk.agents import Agent, ParallelAgent, SequentialAgent
-from google.adk.models.google_llm import Gemini
-from google.adk.runners import InMemoryRunner
-from google.adk.tools import google_search
-from google.genai import types
-
-# retry options (recommended)
-retry = types.HttpRetryOptions(attempts=5, initial_delay=1, exp_base=7, http_status_codes=[429,500,503,504])
-
-# helper to build simple specialist
-def make_specialist(name, instruction, output_key):
-    return Agent(
-        name=name,
-        model=Gemini(model="gemini-2.5-flash-lite", retry_options=retry),
-        tools=[google_search],
-        instruction=instruction,
-        output_key=output_key,
-    )
-
-# create specialists (trimmed instructions for brevity)
-financial = make_specialist("financial_risk", "Provide district-only financial risk JSON", "financial_risk")
-income = make_specialist("income_stability", "Provide district-only income stability JSON", "income_stability_risk")
-climate = make_specialist("climate_risk", "Provide district-only climate risk JSON", "climate_risk")
-socio = make_specialist("socio_vulnerability", "Provide district-only socio-economic JSON", "socio_economic_vulnerability")
-infra = make_specialist("infra_access", "Provide district-only infra JSON", "infrastructure_access_risk")
-shock = make_specialist("shock_history", "Provide district-only shock history JSON", "shock_history_risk")
-
-# aggregator expects structured outputs from all specialists and returns final JSON-like summary
-aggregator = Agent(
-    name="aggregator",
-    model=Gemini(model="gemini-2.5-flash-lite", retry_options=retry),
-    instruction="Synthesize specialists' JSON outputs into a single actionable risk view (Overall Risk Level, Key Drivers, Lending Strategy).",
-    output_key="final_risk_assessment",
-)
-
-# orchestration: run specialists in parallel then aggregator
-parallel_team = ParallelAgent(name="ParallelResearchTeam", sub_agents=[financial, income, climate, socio, infra, shock])
-root = SequentialAgent(name="ResearchSystem", sub_agents=[parallel_team, aggregator])
-
-runner = InMemoryRunner(agent=root)
-
-# run and get result (async runner in notebook or async context)
-response = await runner.run_debug("Provide a comprehensive micro-lending risk assessment for the district of Thanjavur in Tamil Nadu, India.")
-print(response["final_risk_assessment"])
+```
+src/
+├── components/          # React components
+│   ├── BlockHeatmap.tsx
+│   ├── DimensionCard.tsx
+│   ├── GeoMap.tsx
+│   ├── MetricCard.tsx
+│   ├── RiskBadge.tsx
+│   └── RiskRadarChart.tsx
+├── services/
+│   └── geminiService.ts # Gemini/LLM API wrapper
+└── img/                # Screenshots & assets
 ```
 
-Expected aggregator output (JSON-like text example)
+## 🎯 Core Concept: Multi-Agent Risk Synthesis
+
+Our system employs specialized AI agents that analyze district-level data in parallel, then synthesizes their findings into actionable lending risk assessments.
+
+### Agent Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              Specialist Agents                  │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│  │  Financial  │ │   Income    │ │   Climate   │ │
+│  │    Risk     │ │  Stability  │ │     Risk    │ │
+│  └─────────────┘ └─────────────┘ └─────────────┘ │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│  │ Socio-Econ  │ │ Infrastructure│ │ Shock History│ │
+│  │ Vulnerability│ │   Access    │ │     Risk    │ │
+│  └─────────────┘ └─────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────┘
+         │
+         │ Parallel Execution
+         ▼
+┌─────────────────────────────────────────────────┐
+│              Aggregator Agent                   │
+│   Synthesizes all inputs into unified risk view │
+└─────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────┐
+│           Actionable Risk Assessment            │
+│   • Overall Risk Level                          │
+│   • Key Risk Drivers                            │
+│   • Lending Strategy                            │
+│   • Borrower Segment Analysis                   │
+└─────────────────────────────────────────────────┘
+```
+
+### Sample Output
+
 ```json
 {
   "District": "Thanjavur",
@@ -152,18 +97,114 @@ Expected aggregator output (JSON-like text example)
     "Ticket Size Guidance": "Smaller tickets for rainfed farmers; larger for salaried urban borrowers.",
     "Product Design Notes": "Seasonal EMI schedules; crop-insurance linkage for paddy loans.",
     "Collection & Operations Notes": "Use digital collections for urban pockets; field visits for remote villages."
-  },
-  "Summary": "Thanjavur shows medium overall risk driven primarily by climate variability. Design smaller seasonal loans for rainfed farmers and use insurance/seasonal EMIs to reduce default risk."
+  }
 }
 ```
 
-Notes and recommended next steps
-- Validate each specialist's instruction and output schema during development to ensure aggregator parsing is robust.
-- Store agent outputs (audit log) so lenders can inspect dimension-level evidence.
-- Configure API keys and retries in environment variables and secrets (do not hardcode).
+## ⚡ Quick Start
 
-## Contributing
-- Create a feature branch, add tests where applicable, and open a PR with a short description of changes.
+### Prerequisites
+- Node.js (v16 or higher)
+- Google Gemini API key
 
-## License
-- Add your license details here.
+### Installation & Setup
+
+1. **Install dependencies**
+   ```powershell
+   npm install
+   ```
+
+2. **Set environment variables**
+   ```powershell
+   # Current session only
+   $env:REACT_APP_GEMINI_API_KEY = "your_api_key_here"
+   
+   # Or persist across sessions
+   setx REACT_APP_GEMINI_API_KEY "your_api_key_here"
+   ```
+
+3. **Run locally**
+   ```powershell
+   # For Vite projects
+   npm run dev
+   
+   # For Create React App projects  
+   npm start
+   ```
+
+4. **Build for production**
+   ```powershell
+   npm run build
+   ```
+
+### Deployment
+
+```powershell
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login and initialize (first time only)
+firebase login
+firebase init hosting
+
+# Deploy
+firebase deploy --only hosting
+```
+
+### Testing
+```powershell
+npm test
+```
+
+## 🔬 Interactive Development
+
+Explore the multi-agent system through our Jupyter notebook:
+
+```powershell
+# Install notebook dependencies
+pip install -r requirements.txt
+# or
+pip install google-adk google-genai python-dotenv jupyterlab
+
+# Launch Jupyter
+jupyter lab
+```
+
+Open `notebooks/adk.ipynb` to:
+- Experiment with agent instructions
+- View intermediate outputs
+- Refine risk assessment logic
+- Maintain audit trails
+
+## 🎮 Key Features
+
+### Visual Components
+- **Risk Radar Chart:** Multi-dimensional risk visualization
+- **Geo Map:** Geographical risk distribution
+- **Block Heatmap:** Temporal risk patterns
+- **Dimension Cards:** Detailed risk factor breakdowns
+- **Metric Cards:** Key performance indicators
+- **Risk Badges:** Quick risk level identification
+
+### AI-Powered Analysis
+- **Parallel Processing:** Six specialist agents running concurrently
+- **Structured Outputs:** Consistent JSON schema across all agents
+- **Audit Trail:** Complete visibility into agent reasoning
+- **Actionable Insights:** Lender-ready risk guidance
+
+## 📈 Benefits
+
+- **Modular:** Easily add/remove specialist agents
+- **Auditable:** Transparent dimension-level evidence
+- **Scalable:** Parallel agent execution
+- **Actionable:** Direct lending strategy recommendations
+- **Consistent:** Structured output format
+
+## 🤝 Contributing
+
+1. Create a feature branch
+2. Add tests for new functionality
+3. Submit a PR with clear description of changes
+4. Ensure all tests pass
+
+## 📝 License

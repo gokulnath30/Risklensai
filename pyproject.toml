@@ -1,0 +1,12 @@
+[project]
+name = "google-adk-hackathon"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "google-adk>=1.19.0",
+    "google-cloud-vision>=3.11.0",
+    "pandas>=2.3.3",
+    "streamlit>=1.51.0",
+]
