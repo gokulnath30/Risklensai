@@ -1,17 +1,23 @@
+
 import React, { useState } from 'react';
-import { Search, MapPin, Activity, TrendingUp, ShieldAlert, CloudRain, Users, Wifi, History, Info, ChevronRight, Loader2, CheckCircle, AlertCircle, Building2, Wallet, Scale, AlertTriangle } from 'lucide-react';
+import { Search, MapPin, Activity, TrendingUp, ShieldAlert, CloudRain, Users, Wifi, History, Loader2, CheckCircle, AlertCircle, Building2, Wallet, Scale, AlertTriangle, Bot, BrainCircuit, FileText, Download, LayoutDashboard, Map as MapIcon } from 'lucide-react';
 import { RiskAssessment } from './types';
 import { analyzeDistrictRisk } from './services/geminiService';
 import RiskBadge from './components/RiskBadge';
 import DimensionCard from './components/DimensionCard';
 import RiskRadarChart from './components/RiskRadarChart';
 import MetricCard from './components/MetricCard';
+import BlockHeatmap from './components/BlockHeatmap';
+import GeoMap from './components/GeoMap';
 
 const App: React.FC = () => {
-  const [district, setDistrict] = useState('Coimbatore');
+  const [district, setDistrict] = useState('Thanjavur');
   const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState("Initializing...");
+  const [activeAgent, setActiveAgent] = useState<string | null>(null);
   const [data, setData] = useState<RiskAssessment | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'heatmap' | 'geomap'>('geomap');
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,14 +28,112 @@ const App: React.FC = () => {
     setData(null);
 
     try {
-      const result = await analyzeDistrictRisk(district);
+      const result = await analyzeDistrictRisk(district, (status, agentName) => {
+        setLoadingStatus(status);
+        if (agentName) setActiveAgent(agentName);
+      });
       setData(result);
     } catch (err) {
       setError("Failed to analyze district. Please try again or check your API Key.");
     } finally {
       setLoading(false);
+      setActiveAgent(null);
     }
   };
+
+  const handleExport = () => {
+    if (!data) return;
+
+    const timestamp = new Date().toLocaleString();
+    const reportContent = `
+RISKLENS AI - MICRO-LENDING RISK REPORT
+Generated on: ${timestamp}
+Target District: ${data.District}
+--------------------------------------------------
+
+EXECUTIVE SUMMARY
+${data.Summary}
+
+OVERALL RISK PROFILE
+Score: ${data["Overall Risk Score"]}/100
+Level: ${data["Overall Risk Level"]}
+
+BANK INTELLIGENCE
+- Predicted Default Rate: ${data["Bank Intelligence"].predictedDefaultRate}
+- Recommended Interest Spread: ${data["Bank Intelligence"].recommendedInterestSpread}
+- Max Exposure per Borrower: ${data["Bank Intelligence"].maxExposurePerBorrower}
+- Collection Difficulty: ${data["Bank Intelligence"].collectionDifficultyScore}/10
+
+SUB-REGION ANALYSIS (Hyper-Local Risk)
+${data["SubRegion Analysis"].map(r => `- ${r.name} (${r.type}): ${r.riskLevel} Risk (Score: ${r.riskScore}). Factor: ${r.mainRiskFactor}`).join('\n')}
+
+RISK DIMENSIONS
+1. Financial Behaviour: ${data["Dimension Insights"]["Credit & Financial Behaviour"].level} - ${data["Dimension Insights"]["Credit & Financial Behaviour"].insight}
+2. Income Stability: ${data["Dimension Insights"]["Income Stability"].level} - ${data["Dimension Insights"]["Income Stability"].insight}
+3. Climate Risk: ${data["Dimension Insights"]["Climate & Agricultural Risk"].level} - ${data["Dimension Insights"]["Climate & Agricultural Risk"].insight}
+
+STRATEGIC RECOMMENDATIONS
+- Product: ${data["Lending Strategy Suggestions"]["Product Design Notes"]}
+- Collections: ${data["Lending Strategy Suggestions"]["Collection & Operations Notes"]}
+- Ticket Size: ${data["Lending Strategy Suggestions"]["Ticket Size Guidance"]}
+
+--------------------------------------------------
+Powered by RiskLens AI Multi-Agent System
+    `;
+
+    const blob = new Blob([reportContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `RiskLens_Report_${data.District}_${new Date().toISOString().slice(0,10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const AgentLoadingView = () => (
+    <div className="flex flex-col items-center justify-center py-24 animate-in fade-in max-w-2xl mx-auto">
+      <div className="relative mb-12">
+        <div className="w-24 h-24 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-sm">
+          <BrainCircuit className="w-8 h-8 text-indigo-600" />
+        </div>
+      </div>
+      
+      <h3 className="text-xl font-bold text-slate-900 mb-2">{loadingStatus}</h3>
+      <p className="text-slate-500 mb-8 text-center max-w-md">
+        Orchestrating multi-agent swarm to analyze regulatory, environmental, and socio-economic vectors for {district}.
+      </p>
+
+      {/* Agent Visualization */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+        {[
+          { id: 'Regulatory Compliance Agent', icon: <Scale className="w-4 h-4" />, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { id: 'Socio-Economic Risk Agent', icon: <Users className="w-4 h-4" />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { id: 'Environmental & Livelihood Agent', icon: <CloudRain className="w-4 h-4" />, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+          { id: 'Portfolio & Market Trend Agent', icon: <TrendingUp className="w-4 h-4" />, color: 'text-purple-600', bg: 'bg-purple-50' }
+        ].map((agent) => (
+          <div 
+            key={agent.id}
+            className={`flex flex-col items-center p-3 rounded-xl border transition-all duration-300 ${
+              activeAgent === agent.id 
+                ? 'border-indigo-500 shadow-md scale-105 bg-white ring-2 ring-indigo-100' 
+                : 'border-slate-100 bg-slate-50 opacity-60 grayscale'
+            }`}
+          >
+            <div className={`p-2 rounded-lg ${agent.bg} ${agent.color} mb-2`}>
+              {agent.icon}
+            </div>
+            <span className="text-[10px] font-bold text-slate-600 text-center leading-tight">{agent.id.replace(' Agent', '')}</span>
+            {activeAgent === agent.id && (
+              <span className="text-[9px] text-indigo-600 font-medium mt-1 animate-pulse">Processing...</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100">
@@ -38,29 +142,41 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">
-              R
+              <Bot className="w-5 h-5" />
             </div>
             <div className="leading-tight">
-              <span className="text-lg font-bold tracking-tight text-slate-900 block">RiskLens <span className="text-indigo-600">Pro</span></span>
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Banking Intelligence</span>
+              <span className="text-lg font-bold tracking-tight text-slate-900 block">RiskLens <span className="text-indigo-600">AI</span></span>
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Multi-Agent Swarm</span>
             </div>
           </div>
-          <div className="text-xs text-slate-500 font-medium flex items-center gap-1">
-             Gemini 2.5 Flash Engine
+          <div className="flex items-center gap-2">
+            {data && (
+               <button 
+                onClick={handleExport}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-md text-xs font-medium hover:bg-slate-800 transition-colors shadow-sm active:scale-95"
+               >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export Report</span>
+               </button>
+            )}
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-full text-xs font-medium text-indigo-700 border border-indigo-100">
+               <BrainCircuit className="w-3 h-3" />
+               <span>Gemini 2.5 Flash</span>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section - Compact if data exists, Hero if not */}
+        {/* Search Section */}
         <div className={`transition-all duration-500 ease-in-out ${data ? 'mb-8' : 'mb-12 text-center max-w-3xl mx-auto'}`}>
-          {!data && (
+          {!data && !loading && (
             <>
               <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                District-Level Risk Analytics
+                Micro-Lending Intelligence
               </h1>
               <p className="text-slate-600 text-lg mb-8">
-                Advanced micro-lending intelligence for underwriting, collection planning, and portfolio management.
+                Deploy a swarm of specialized AI agents to analyze regulatory, environmental, and credit risks in Tamil Nadu down to the <strong>Block/Taluk level</strong>.
               </p>
             </>
           )}
@@ -74,7 +190,7 @@ const App: React.FC = () => {
                   type="text"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="Enter District Name (e.g., Salem, Erode)"
+                  placeholder="Enter District (e.g., Thanjavur, Madurai)"
                   className="w-full py-3.5 px-4 text-slate-700 focus:outline-none font-medium placeholder:font-normal bg-transparent"
                 />
                 <button 
@@ -83,7 +199,7 @@ const App: React.FC = () => {
                   className={`mr-1.5 py-2 px-5 ${data ? 'bg-indigo-600 text-white rounded-lg' : 'bg-indigo-600 text-white rounded-full'} font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-70`}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  {data ? 'Update' : 'Analyze'}
+                  {data ? 'New Scan' : 'Deploy Agents'}
                 </button>
               </div>
             </div>
@@ -98,19 +214,8 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-24 animate-in fade-in">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <Activity className="w-6 h-6 text-indigo-600" />
-              </div>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mt-6">Generating Bank-Grade Analytics</h3>
-            <p className="text-slate-500 mt-2">Simulating credit cycles and stress-testing demographics...</p>
-          </div>
-        )}
+        {/* Loading State with Multi-Agent View */}
+        {loading && <AgentLoadingView />}
 
         {/* Dashboard */}
         {data && !loading && (
@@ -165,12 +270,12 @@ const App: React.FC = () => {
                     <span className="text-5xl font-black text-slate-900 tracking-tighter">{data["Overall Risk Score"]}</span>
                     <span className="text-lg font-medium text-slate-400 mb-1.5">/100</span>
                   </div>
-                  <p className="text-sm text-slate-500 mb-6">Composite Risk Score (Higher is Riskier)</p>
+                  <p className="text-sm text-slate-500 mb-6">Composite Risk Score (Weighted Agent Average)</p>
 
                   {/* Executive Summary */}
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                     <h4 className="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
-                      <Info className="w-3.5 h-3.5" /> Analysis Summary
+                      <FileText className="w-3.5 h-3.5" /> Root Agent Summary
                     </h4>
                     <p className="text-sm text-slate-700 leading-relaxed">
                       {data.Summary}
@@ -185,8 +290,38 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: Dimensions Grid (8 cols) */}
-              <div className="lg:col-span-8">
+              {/* Right: Dimensions & HEATMAP (8 cols) */}
+              <div className="lg:col-span-8 flex flex-col gap-6">
+                 
+                 {/* Map / Heatmap Toggle Section */}
+                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-1">
+                   <div className="flex gap-1 mb-0 p-1 bg-slate-100/50 rounded-xl w-fit">
+                      <button 
+                        onClick={() => setViewMode('geomap')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'geomap' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        <MapIcon className="w-4 h-4" /> Geo-Map
+                      </button>
+                      <button 
+                        onClick={() => setViewMode('heatmap')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'heatmap' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        <LayoutDashboard className="w-4 h-4" /> Grid View
+                      </button>
+                   </div>
+                   
+                   <div className="p-1">
+                     {data["SubRegion Analysis"] && (
+                       viewMode === 'geomap' ? (
+                          <GeoMap subRegions={data["SubRegion Analysis"]} districtName={data.District} />
+                       ) : (
+                          <BlockHeatmap subRegions={data["SubRegion Analysis"]} districtName={data.District} />
+                       )
+                     )}
+                   </div>
+                 </div>
+
+                 {/* Dimensions Grid */}
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full">
                     <DimensionCard 
                       title="Financial Behaviour" 

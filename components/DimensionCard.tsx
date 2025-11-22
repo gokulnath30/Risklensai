@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DimensionDetail } from '../types';
 import RiskBadge from './RiskBadge';

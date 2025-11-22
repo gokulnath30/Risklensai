@@ -1,12 +1,11 @@
+
 import React from 'react';
-import { Divide as LucideIcon } from 'lucide-react';
 
 interface MetricCardProps {
   label: string;
   value: string | number;
   subtext?: string;
   icon?: React.ReactNode;
-  trend?: 'up' | 'down' | 'neutral';
   color?: 'indigo' | 'emerald' | 'rose' | 'amber' | 'slate';
 }
 
@@ -23,10 +22,10 @@ const MetricCard: React.FC<MetricCardProps> = ({ label, value, subtext, icon, co
     <div className={`rounded-xl border p-4 flex items-start justify-between ${colorClasses[color]} transition-all hover:shadow-sm`}>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-1">{label}</p>
-        <h4 className="text-2xl font-bold tracking-tight">{value}</h4>
-        {subtext && <p className="text-xs opacity-80 mt-1 font-medium">{subtext}</p>}
+        <h4 className="text-xl font-bold tracking-tight">{value}</h4>
+        {subtext && <p className="text-[10px] opacity-80 mt-1 font-medium leading-tight">{subtext}</p>}
       </div>
-      {icon && <div className="opacity-80">{icon}</div>}
+      {icon && <div className="opacity-80 p-2 bg-white/50 rounded-lg">{icon}</div>}
     </div>
   );
 };
