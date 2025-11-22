@@ -6,7 +6,13 @@ import { DimensionRiskLevels } from '../types';
 interface Props {
   dimensions: DimensionRiskLevels;
 }
-
+const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6'];
+const LEVEL_LABELS: { [key: number]: string } = {
+  1: 'Low',
+  2: 'Moderate',
+  3: 'High',
+  4: 'Critical'
+};
 const RiskRadarChart: React.FC<Props> = ({ dimensions }) => {
   const data = Object.entries(dimensions).map(([key, value]) => ({
     subject: key.replace(" & ", "\n& "), // Break lines for long labels

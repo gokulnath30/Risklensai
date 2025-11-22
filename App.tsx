@@ -159,10 +159,7 @@ Powered by RiskLens AI Multi-Agent System
                   <span>Export Report</span>
                </button>
             )}
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-full text-xs font-medium text-indigo-700 border border-indigo-100">
-               <BrainCircuit className="w-3 h-3" />
-               <span>Gemini 2.5 Flash</span>
-            </div>
+            
           </div>
         </div>
       </header>
@@ -199,7 +196,7 @@ Powered by RiskLens AI Multi-Agent System
                   className={`mr-1.5 py-2 px-5 ${data ? 'bg-indigo-600 text-white rounded-lg' : 'bg-indigo-600 text-white rounded-full'} font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-70`}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  {data ? 'New Scan' : 'Deploy Agents'}
+                  {data ? 'Analyze' : 'Analyze'}
                 </button>
               </div>
             </div>
