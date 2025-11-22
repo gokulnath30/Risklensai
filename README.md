@@ -1,20 +1,20 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# RiskLens AI — Micro-Lending Intelligence
 
-# Run and deploy your AI Studio app
+A compact dashboard that simulates bank-grade, district-level risk analytics for micro-lending in Tamil Nadu using a Gemini-based agent.
 
-This contains everything you need to run your app locally.
+## Key features
+- Multi-dimensional risk profiling across six dimensions (scores, trends, and short insights).
+- Underwriter-focused outputs: predicted NPA, recommended interest spread, exposure limits, and collection difficulty.
+- Interactive UI with radar visualizations and dimension cards.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Zo2ErwcpkR59V5pedq7h_8f6xdQ1iqcA
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+## Quick start
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm install
+```
+
+2. Set up your API key:
+```bash
+GEMINI_API_KEY=your_api_key_here
+```
