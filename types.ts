@@ -1,12 +1,21 @@
 export type RiskLevel = "Low" | "Medium" | "High";
 
+export type TrendDirection = "Improving" | "Stable" | "Worsening";
+
+export interface DimensionDetail {
+  level: RiskLevel;
+  score: number; // 0-100, where 100 is highest risk
+  trend: TrendDirection;
+  insight: string; // A short 1-sentence specific insight
+}
+
 export interface DimensionRiskLevels {
-  "Credit & Financial Behaviour": RiskLevel;
-  "Income Stability": RiskLevel;
-  "Climate & Agricultural Risk": RiskLevel;
-  "Socio-Economic Vulnerability": RiskLevel;
-  "Infrastructure & Access": RiskLevel;
-  "Shock & Event History": RiskLevel;
+  "Credit & Financial Behaviour": DimensionDetail;
+  "Income Stability": DimensionDetail;
+  "Climate & Agricultural Risk": DimensionDetail;
+  "Socio-Economic Vulnerability": DimensionDetail;
+  "Infrastructure & Access": DimensionDetail;
+  "Shock & Event History": DimensionDetail;
 }
 
 export interface LendingStrategy {
@@ -15,13 +24,29 @@ export interface LendingStrategy {
   "Collection & Operations Notes": string;
 }
 
+export interface BankIntelligence {
+  predictedDefaultRate: string; // e.g. "2.4%"
+  recommendedInterestSpread: string; // e.g. "+2.5%"
+  maxExposurePerBorrower: string; // e.g. "₹45,000"
+  collectionDifficultyScore: number; // 1-10
+}
+
+export interface MarketDemographics {
+  populationDensity: string;
+  primaryIncomeSource: string;
+  bankingPenetration: string;
+}
+
 export interface RiskAssessment {
   District: string;
+  "Overall Risk Score": number; // 0-100
   "Overall Risk Level": RiskLevel;
-  "Dimension Risk Levels": DimensionRiskLevels;
+  "Dimension Insights": DimensionRiskLevels;
   "Key Risk Drivers": string[];
   "Safer Borrower Segments": string;
   "High-Risk Segments": string;
+  "Bank Intelligence": BankIntelligence;
+  "Market Demographics": MarketDemographics;
   "Lending Strategy Suggestions": LendingStrategy;
   Summary: string;
 }

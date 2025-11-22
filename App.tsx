@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Activity, TrendingUp, ShieldAlert, CloudRain, Users, Wifi, History, Info, ChevronRight, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, MapPin, Activity, TrendingUp, ShieldAlert, CloudRain, Users, Wifi, History, Info, ChevronRight, Loader2, CheckCircle, AlertCircle, Building2, Wallet, Scale, AlertTriangle } from 'lucide-react';
 import { RiskAssessment } from './types';
 import { analyzeDistrictRisk } from './services/geminiService';
 import RiskBadge from './components/RiskBadge';
 import DimensionCard from './components/DimensionCard';
 import RiskRadarChart from './components/RiskRadarChart';
+import MetricCard from './components/MetricCard';
 
 const App: React.FC = () => {
-  const [district, setDistrict] = useState('Thanjavur');
+  const [district, setDistrict] = useState('Coimbatore');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<RiskAssessment | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,51 +32,58 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">
               R
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-800">RiskLens <span className="text-indigo-600">AI</span></span>
+            <div className="leading-tight">
+              <span className="text-lg font-bold tracking-tight text-slate-900 block">RiskLens <span className="text-indigo-600">Pro</span></span>
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Banking Intelligence</span>
+            </div>
           </div>
           <div className="text-xs text-slate-500 font-medium flex items-center gap-1">
-             Powered by Gemini 2.5 Flash
+             Gemini 2.5 Flash Engine
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero / Search Section */}
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            Hyper-Local Micro-Lending Intelligence
-          </h1>
-          <p className="text-slate-600 text-lg mb-8">
-            Analyze credit risk, income stability, and socio-economic factors at the district level using multi-agent AI.
-          </p>
+        {/* Search Section - Compact if data exists, Hero if not */}
+        <div className={`transition-all duration-500 ease-in-out ${data ? 'mb-8' : 'mb-12 text-center max-w-3xl mx-auto'}`}>
+          {!data && (
+            <>
+              <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                District-Level Risk Analytics
+              </h1>
+              <p className="text-slate-600 text-lg mb-8">
+                Advanced micro-lending intelligence for underwriting, collection planning, and portfolio management.
+              </p>
+            </>
+          )}
           
-          <form onSubmit={handleAnalyze} className="relative max-w-lg mx-auto">
+          <form onSubmit={handleAnalyze} className={`relative ${data ? 'max-w-xl' : 'max-w-lg mx-auto'}`}>
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-30 group-hover:opacity-75 transition duration-200"></div>
-              <div className="relative flex items-center bg-white rounded-full shadow-xl">
-                <MapPin className="ml-4 text-slate-400 w-5 h-5" />
+              {!data && <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-20 group-hover:opacity-60 transition duration-200"></div>}
+              <div className={`relative flex items-center bg-white ${data ? 'rounded-xl border border-slate-200 shadow-sm' : 'rounded-full shadow-xl'} overflow-hidden`}>
+                <MapPin className={`ml-4 ${data ? 'text-indigo-500' : 'text-slate-400'} w-5 h-5`} />
                 <input
                   type="text"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="Enter District Name (e.g., Thanjavur, Madurai)"
-                  className="w-full py-4 px-4 text-slate-700 rounded-full focus:outline-none font-medium placeholder:font-normal"
+                  placeholder="Enter District Name (e.g., Salem, Erode)"
+                  className="w-full py-3.5 px-4 text-slate-700 focus:outline-none font-medium placeholder:font-normal bg-transparent"
                 />
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="mr-1.5 py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-medium transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className={`mr-1.5 py-2 px-5 ${data ? 'bg-indigo-600 text-white rounded-lg' : 'bg-indigo-600 text-white rounded-full'} font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-70`}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  Analyze
+                  {data ? 'Update' : 'Analyze'}
                 </button>
               </div>
             </div>
@@ -84,157 +92,242 @@ const App: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="max-w-2xl mx-auto mb-8 p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg flex items-center gap-3">
+          <div className="max-w-2xl mx-auto mb-8 p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
             <ShieldAlert className="w-5 h-5 flex-shrink-0" />
             <p>{error}</p>
           </div>
         )}
 
-        {/* Results Dashboard */}
+        {/* Loading State */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
-            <p className="text-slate-500 font-medium">Aggregating Multi-Agent Insights...</p>
-            <p className="text-slate-400 text-sm mt-2">Checking Climate, Financial, and Socio-Economic vectors</p>
+          <div className="flex flex-col items-center justify-center py-24 animate-in fade-in">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <Activity className="w-6 h-6 text-indigo-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mt-6">Generating Bank-Grade Analytics</h3>
+            <p className="text-slate-500 mt-2">Simulating credit cycles and stress-testing demographics...</p>
           </div>
         )}
 
+        {/* Dashboard */}
         {data && !loading && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             
-            {/* Top Row: Summary & Overall Score */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left: Overall Score */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center text-center">
-                <h3 className="text-slate-500 uppercase tracking-wider text-xs font-bold mb-4">Overall Risk Assessment</h3>
-                <div className="mb-4 transform scale-125">
-                  <RiskBadge level={data["Overall Risk Level"]} size="lg" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">{data.District}</h2>
-                <p className="text-sm text-slate-500">Tamil Nadu, India</p>
-              </div>
-
-              {/* Right: Executive Summary */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 col-span-1 lg:col-span-2 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-3 text-indigo-600 font-semibold">
-                  <Info className="w-5 h-5" />
-                  <h3>Executive Summary</h3>
-                </div>
-                <p className="text-slate-700 leading-relaxed">
-                  {data.Summary}
-                </p>
-              </div>
-            </div>
-
-            {/* Middle Row: Dimensions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <DimensionCard 
-                title="Financial Behaviour" 
-                level={data["Dimension Risk Levels"]["Credit & Financial Behaviour"]} 
-                icon={<TrendingUp className="w-5 h-5 text-blue-600" />} 
+            {/* Section 1: Vital Signs Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricCard 
+                label="Banking Penetration" 
+                value={data["Market Demographics"].bankingPenetration} 
+                icon={<Building2 className="w-5 h-5" />}
+                color="indigo"
               />
-              <DimensionCard 
-                title="Income Stability" 
-                level={data["Dimension Risk Levels"]["Income Stability"]} 
-                icon={<Activity className="w-5 h-5 text-emerald-600" />} 
+               <MetricCard 
+                label="Est. NPA Rate" 
+                value={data["Bank Intelligence"].predictedDefaultRate} 
+                subtext="Next 12mo projection"
+                icon={<AlertTriangle className="w-5 h-5" />}
+                color="rose"
               />
-              <DimensionCard 
-                title="Climate Risk" 
-                level={data["Dimension Risk Levels"]["Climate & Agricultural Risk"]} 
-                icon={<CloudRain className="w-5 h-5 text-cyan-600" />} 
+              <MetricCard 
+                label="Primary Income" 
+                value={data["Market Demographics"].primaryIncomeSource} 
+                icon={<Wallet className="w-5 h-5" />}
+                color="emerald"
               />
-              <DimensionCard 
-                title="Socio-Economic" 
-                level={data["Dimension Risk Levels"]["Socio-Economic Vulnerability"]} 
-                icon={<Users className="w-5 h-5 text-purple-600" />} 
-              />
-              <DimensionCard 
-                title="Infrastructure" 
-                level={data["Dimension Risk Levels"]["Infrastructure & Access"]} 
-                icon={<Wifi className="w-5 h-5 text-orange-600" />} 
-              />
-              <DimensionCard 
-                title="Shock History" 
-                level={data["Dimension Risk Levels"]["Shock & Event History"]} 
-                icon={<History className="w-5 h-5 text-red-600" />} 
+              <MetricCard 
+                label="Pop. Density" 
+                value={data["Market Demographics"].populationDensity} 
+                icon={<Users className="w-5 h-5" />}
+                color="slate"
               />
             </div>
 
-            {/* Bottom Row: Deep Dive & Chart */}
+            {/* Section 2: Main Risk Profile */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left: Overall Assessment (4 cols) */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-hidden relative">
+                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+                  
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h2 className="text-3xl font-bold text-slate-900">{data.District}</h2>
+                      <p className="text-slate-500 font-medium">Overall Risk Profile</p>
+                    </div>
+                    <RiskBadge level={data["Overall Risk Level"]} size="lg" />
+                  </div>
+
+                  <div className="flex items-end gap-2 mb-2">
+                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{data["Overall Risk Score"]}</span>
+                    <span className="text-lg font-medium text-slate-400 mb-1.5">/100</span>
+                  </div>
+                  <p className="text-sm text-slate-500 mb-6">Composite Risk Score (Higher is Riskier)</p>
+
+                  {/* Executive Summary */}
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5" /> Analysis Summary
+                    </h4>
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                      {data.Summary}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Radar Chart Card */}
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+                   <h4 className="text-xs font-bold text-slate-500 uppercase mb-4 text-center">Multi-Dimensional Vulnerability Map</h4>
+                   <RiskRadarChart dimensions={data["Dimension Insights"]} />
+                </div>
+              </div>
+
+              {/* Right: Dimensions Grid (8 cols) */}
+              <div className="lg:col-span-8">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full">
+                    <DimensionCard 
+                      title="Financial Behaviour" 
+                      data={data["Dimension Insights"]["Credit & Financial Behaviour"]} 
+                      icon={<TrendingUp className="w-4 h-4" />} 
+                    />
+                    <DimensionCard 
+                      title="Income Stability" 
+                      data={data["Dimension Insights"]["Income Stability"]} 
+                      icon={<Activity className="w-4 h-4" />} 
+                    />
+                    <DimensionCard 
+                      title="Climate Risk" 
+                      data={data["Dimension Insights"]["Climate & Agricultural Risk"]} 
+                      icon={<CloudRain className="w-4 h-4" />} 
+                    />
+                    <DimensionCard 
+                      title="Socio-Economic" 
+                      data={data["Dimension Insights"]["Socio-Economic Vulnerability"]} 
+                      icon={<Users className="w-4 h-4" />} 
+                    />
+                    <DimensionCard 
+                      title="Infrastructure" 
+                      data={data["Dimension Insights"]["Infrastructure & Access"]} 
+                      icon={<Wifi className="w-4 h-4" />} 
+                    />
+                    <DimensionCard 
+                      title="Shock History" 
+                      data={data["Dimension Insights"]["Shock & Event History"]} 
+                      icon={<History className="w-4 h-4" />} 
+                    />
+                 </div>
+              </div>
+            </div>
+
+            {/* Section 3: Banker's Toolkit */}
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mt-8">
+              <Scale className="w-5 h-5 text-indigo-600" />
+              Underwriting & Policy Guidelines
+            </h3>
+            
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Strategy Column */}
-              <div className="lg:col-span-2 space-y-6">
+              {/* Policy Card */}
+              <div className="bg-slate-900 rounded-2xl shadow-lg p-6 text-slate-50 lg:col-span-1">
+                <h4 className="text-indigo-300 font-semibold uppercase tracking-wider text-xs mb-6">Recommended Policy Parameters</h4>
                 
-                {/* Strategy Cards */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                  <div className="bg-slate-50 px-6 py-4 border-b border-slate-100">
-                    <h3 className="font-semibold text-slate-800">Lending Strategy Recommendations</h3>
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-400">Max Exposure</span>
+                      <span className="font-bold text-white">{data["Bank Intelligence"].maxExposurePerBorrower}</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full"><div className="bg-indigo-500 h-1.5 rounded-full w-3/4"></div></div>
                   </div>
-                  <div className="p-6 grid gap-6">
-                    <div className="flex gap-4">
-                      <div className="w-1 bg-indigo-500 rounded-full"></div>
-                      <div>
-                        <h4 className="text-sm font-bold text-indigo-900 uppercase mb-1">Ticket Size</h4>
-                        <p className="text-sm text-slate-600">{data["Lending Strategy Suggestions"]["Ticket Size Guidance"]}</p>
-                      </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-400">Interest Spread</span>
+                      <span className="font-bold text-white">{data["Bank Intelligence"].recommendedInterestSpread}</span>
                     </div>
-                    <div className="flex gap-4">
-                      <div className="w-1 bg-emerald-500 rounded-full"></div>
-                      <div>
-                        <h4 className="text-sm font-bold text-emerald-900 uppercase mb-1">Product Design</h4>
-                        <p className="text-sm text-slate-600">{data["Lending Strategy Suggestions"]["Product Design Notes"]}</p>
-                      </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full"><div className="bg-emerald-500 h-1.5 rounded-full w-1/2"></div></div>
+                  </div>
+
+                  <div>
+                     <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-400">Collection Difficulty</span>
+                      <span className="font-bold text-rose-400">{data["Bank Intelligence"].collectionDifficultyScore}/10</span>
                     </div>
-                    <div className="flex gap-4">
-                      <div className="w-1 bg-amber-500 rounded-full"></div>
-                      <div>
-                        <h4 className="text-sm font-bold text-amber-900 uppercase mb-1">Collections</h4>
-                        <p className="text-sm text-slate-600">{data["Lending Strategy Suggestions"]["Collection & Operations Notes"]}</p>
-                      </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full">
+                      <div 
+                        className={`h-1.5 rounded-full ${data["Bank Intelligence"].collectionDifficultyScore > 7 ? 'bg-rose-500' : 'bg-amber-500'}`} 
+                        style={{ width: `${data["Bank Intelligence"].collectionDifficultyScore * 10}%` }}
+                      ></div>
                     </div>
                   </div>
                 </div>
 
-                {/* Segments */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-emerald-50 to-white rounded-xl p-5 border border-emerald-100">
-                    <h4 className="text-emerald-800 font-semibold mb-2 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> Safer Segments
-                    </h4>
-                    <p className="text-sm text-emerald-900/80 leading-relaxed">
-                      {data["Safer Borrower Segments"]}
-                    </p>
-                  </div>
-                  <div className="bg-gradient-to-br from-rose-50 to-white rounded-xl p-5 border border-rose-100">
-                    <h4 className="text-rose-800 font-semibold mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" /> High Risk Segments
-                    </h4>
-                    <p className="text-sm text-rose-900/80 leading-relaxed">
-                      {data["High-Risk Segments"]}
-                    </p>
+                <div className="mt-8 pt-6 border-t border-slate-800">
+                  <h5 className="text-xs font-semibold text-slate-400 mb-2">Key Risk Drivers</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {data["Key Risk Drivers"].map((driver, i) => (
+                      <span key={i} className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300 border border-slate-700">
+                        {driver}
+                      </span>
+                    ))}
                   </div>
                 </div>
-
               </div>
 
-              {/* Chart Column */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                 <h3 className="text-sm font-bold text-slate-800 uppercase mb-6 text-center">Risk Radar Visualization</h3>
-                 <div className="flex-grow flex items-center justify-center">
-                   <RiskRadarChart dimensions={data["Dimension Risk Levels"]} />
+              {/* Strategy & Segments */}
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                 
+                 {/* Strategy Text */}
+                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <h4 className="font-bold text-slate-900 mb-4">Operational Strategy</h4>
+                    <ul className="space-y-4">
+                      <li className="flex gap-3">
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 font-bold text-xs">1</div>
+                        <div>
+                          <h5 className="text-xs font-bold uppercase text-slate-500 mb-0.5">Product Design</h5>
+                          <p className="text-sm text-slate-700">{data["Lending Strategy Suggestions"]["Product Design Notes"]}</p>
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                         <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 font-bold text-xs">2</div>
+                        <div>
+                          <h5 className="text-xs font-bold uppercase text-slate-500 mb-0.5">Collections</h5>
+                          <p className="text-sm text-slate-700">{data["Lending Strategy Suggestions"]["Collection & Operations Notes"]}</p>
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                         <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 font-bold text-xs">3</div>
+                        <div>
+                          <h5 className="text-xs font-bold uppercase text-slate-500 mb-0.5">Ticket Size</h5>
+                          <p className="text-sm text-slate-700">{data["Lending Strategy Suggestions"]["Ticket Size Guidance"]}</p>
+                        </div>
+                      </li>
+                    </ul>
                  </div>
-                 <div className="mt-6">
-                   <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Key Drivers</h4>
-                   <ul className="space-y-2">
-                     {data["Key Risk Drivers"].map((driver, idx) => (
-                       <li key={idx} className="text-sm text-slate-700 flex items-start gap-2">
-                         <ChevronRight className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-                         {driver}
-                       </li>
-                     ))}
-                   </ul>
+
+                 {/* Segments */}
+                 <div className="space-y-4">
+                    <div className="bg-emerald-50 rounded-xl p-5 border border-emerald-100 h-[48%]">
+                      <h4 className="text-emerald-800 font-bold text-sm mb-2 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" /> Ideal Borrower Profile
+                      </h4>
+                      <p className="text-sm text-emerald-900/80 leading-relaxed">
+                        {data["Safer Borrower Segments"]}
+                      </p>
+                    </div>
+                    <div className="bg-rose-50 rounded-xl p-5 border border-rose-100 h-[48%]">
+                      <h4 className="text-rose-800 font-bold text-sm mb-2 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" /> Segments to Avoid
+                      </h4>
+                      <p className="text-sm text-rose-900/80 leading-relaxed">
+                        {data["High-Risk Segments"]}
+                      </p>
+                    </div>
                  </div>
+
               </div>
 
             </div>
