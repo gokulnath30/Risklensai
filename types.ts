@@ -1,3 +1,4 @@
+
 export type RiskLevel = "Low" | "Medium" | "High";
 
 export type TrendDirection = "Improving" | "Stable" | "Worsening";
@@ -37,6 +38,14 @@ export interface MarketDemographics {
   bankingPenetration: string;
 }
 
+export interface SubRegion {
+  name: string; // Name of the Block/Taluk
+  type: "Urban" | "Rural" | "Coastal" | "Semi-Urban";
+  riskScore: number; // 0-100
+  riskLevel: RiskLevel;
+  mainRiskFactor: string; // e.g. "Flood Prone" or "High Over-leverage"
+}
+
 export interface RiskAssessment {
   District: string;
   "Overall Risk Score": number; // 0-100
@@ -48,6 +57,7 @@ export interface RiskAssessment {
   "Bank Intelligence": BankIntelligence;
   "Market Demographics": MarketDemographics;
   "Lending Strategy Suggestions": LendingStrategy;
+  "SubRegion Analysis": SubRegion[]; // New field for Heatmap
   Summary: string;
 }
 
